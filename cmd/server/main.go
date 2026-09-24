@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log/slog"
+	"log"
 	"os"
 	"os/signal"
 
@@ -15,16 +15,15 @@ func main() {
 	conString := "amqp://guest:guest@localhost:5672/"
 	conn, err := amqp.Dial(conString)
 	if err != nil {
-		slog.Error("Failed to connect to rabbitmq", err)
+		log.Fatalf("could not connect to RabbbitMQ: %v", err)
 	}
 	defer conn.Close()
 
-	fmt.Println("Connected to rabbitmq")
+	fmt.Println("Peril game server connected to RabbitMQ!")
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 
-	interrupted := <-signalChan
-	fmt.Printf("%v Signal, shutting down\n", interrupted)
-	os.Exit(0)
+	<-signalChan
+	fmt.Println("RabbitMQ connection closed.")
 }
