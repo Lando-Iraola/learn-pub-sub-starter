@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
 
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
@@ -49,15 +47,11 @@ func main() {
 			pubsub.PublishJSON(ch, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: false})
 		case "quit":
 			log.Println("Quit received, quitting")
-			break
+			return
 		default:
 			log.Println("Unknown command received")
 		}
 
 	}
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-
-	<-signalChan
 	fmt.Println("RabbitMQ connection closed.")
 }
