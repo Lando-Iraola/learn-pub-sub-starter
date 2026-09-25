@@ -26,9 +26,11 @@ func main() {
 	}
 
 	queueName := fmt.Sprintf("%s.%s", routing.PauseKey, userName)
-	pubsub.DeclareAndBind(conn, routing.ExchangePerilDirect, queueName, routing.PauseKey, pubsub.TransientQueue)
-
 	gamestate := gamelogic.NewGameState(userName)
+	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilDirect, queueName, routing.PauseKey, pubsub.TransientQueue, handlerPause(gamestate))
+	if err != nil {
+		log.Fatalf("Error subscribing to ch", err)
+	}
 	for {
 		inputs := gamelogic.GetInput()
 		switch inputs[0] {
