@@ -20,11 +20,7 @@ func main() {
 	}
 	defer conn.Close()
 
-	ch, err := conn.Channel()
-
-	if err != nil {
-		log.Fatalf("could not create channel: %v", err)
-	}
+	ch, _, err := pubsub.DeclareAndBind(conn, routing.ExchangePerilTopic, routing.GameLogSlug, "game_logs.*", pubsub.DurableQueue)
 
 	pubsub.PublishJSON(ch, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: true})
 	fmt.Println("Peril game server connected to RabbitMQ!")
@@ -53,5 +49,4 @@ func main() {
 		}
 
 	}
-	fmt.Println("RabbitMQ connection closed.")
 }
