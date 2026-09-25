@@ -23,12 +23,11 @@ func main() {
 
 	ch, err := conn.Channel()
 
-	pubsub.PublishJSON(ch, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: true})
-
 	if err != nil {
 		log.Fatalf("could not create channel: %v", err)
 	}
 
+	pubsub.PublishJSON(ch, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: true})
 	fmt.Println("Peril game server connected to RabbitMQ!")
 
 	signalChan := make(chan os.Signal, 1)
