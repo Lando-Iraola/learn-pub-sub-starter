@@ -33,9 +33,9 @@ func main() {
 		log.Fatalf("Error subscribing to pause", err)
 	}
 
-	armyQueue := fmt.Sprintf("army_moves.%s", userName)
-	armyKey := "army_moves.*"
-	armyCh, _, err := pubsub.DeclareAndBind(conn, routing.ExchangePerilTopic, armyQueue, armyKey, pubsub.TransientQueue)
+	armyQueue := routing.ArmyMovesPrefix + "." + userName
+	armyKey := routing.ArmyMovesPrefix + ".*"
+	armyCh, err := conn.Channel()
 	defer armyCh.Close()
 	if err != nil {
 		log.Fatalf("Error subscribing to army channel", err)
@@ -54,16 +54,21 @@ func main() {
 			err := gamestate.CommandSpawn(inputs)
 			if err != nil {
 				log.Println("Failed to spawn", err)
+				continue
 			}
 		case "move":
 			move, err := gamestate.CommandMove(inputs)
 			if err != nil {
 				log.Println("Failed to move", err)
-			} else {
-
-				pubsub.PublishJSON(armyCh, routing.ExchangePerilTopic, armyKey, move)
-				log.Println("Move has been published")
+				continue
 			}
+
+			err = pubsub.PublishJSON(armyCh, routing.ExchangePerilTopic, armyKey, move)
+			if err != nil {
+				fmt.Printf("error: %s\n", err)
+				continue
+			}
+			log.Println("Moved %v units to %s\n", len(mv.Units), mv.ToLocation)
 
 		case "status":
 			gamestate.CommandStatus()
