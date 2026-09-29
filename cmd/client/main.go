@@ -41,10 +41,18 @@ func main() {
 		log.Fatalf("Error subscribing to army channel", err)
 	}
 
-	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, armyQueue, armyKey, pubsub.TransientQueue, handlerArmyMove(gamestate))
+	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, armyQueue, armyKey, pubsub.TransientQueue, handlerArmyMove(armyCh, gamestate))
 
 	if err != nil {
 		log.Fatalf("Error subscribing to moves", err)
+	}
+
+	warQueue := routing.WarRecognitionsPrefix
+	warKey := routing.WarRecognitionsPrefix + ".*"
+	err = pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, warQueue, warKey, pubsub.DurableQueue, handlerWar(armyCh, gamestate))
+
+	if err != nil {
+		log.Fatalf("Error subscribing to war", err)
 	}
 
 	for {
@@ -68,7 +76,7 @@ func main() {
 				fmt.Printf("error: %s\n", err)
 				continue
 			}
-			log.Println("Moved %v units to %s\n", len(mv.Units), mv.ToLocation)
+			log.Printf("Moved %v units to %s\n", len(move.Units), move.ToLocation)
 
 		case "status":
 			gamestate.CommandStatus()

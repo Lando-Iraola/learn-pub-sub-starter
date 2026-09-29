@@ -33,7 +33,9 @@ func DeclareAndBind(
 		queueType != DurableQueue,
 		queueType != DurableQueue,
 		false,
-		nil)
+		amqp.Table{
+			"x-dead-letter-exchange": "peril_dlx",
+		})
 
 	if err != nil {
 		return nil, amqp.Queue{}, err
@@ -47,13 +49,21 @@ func DeclareAndBind(
 	return ch, q, nil
 }
 
+type Acktype int
+
+const (
+	Ack Acktype = iota
+	NackRequeue
+	NackDiscard
+)
+
 func SubscribeJSON[T any](
 	conn *amqp.Connection,
 	exchange,
 	queueName,
 	key string,
 	queueType SimpleQueueType,
-	handler func(T),
+	handler func(T) Acktype,
 ) error {
 	ch, _, err := DeclareAndBind(conn, exchange, queueName, key, queueType)
 	if err != nil {
@@ -72,9 +82,20 @@ func SubscribeJSON[T any](
 				log.Println("It was not possible  to unmarshal in go routine", err)
 			}
 
-			handler(jBody)
+			acktype := handler(jBody)
 
-			val.Ack(false)
+			switch acktype {
+			case Ack:
+				val.Ack(false)
+				fmt.Println("Message acknowledge")
+			case NackRequeue:
+				val.Nack(false, true)
+				fmt.Println("Message not acknowledge, retry")
+			case NackDiscard:
+				val.Nack(false, false)
+				fmt.Println("Message not acknowledge, discard")
+			}
+
 		}
 	}()
 
