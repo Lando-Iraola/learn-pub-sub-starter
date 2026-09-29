@@ -24,9 +24,10 @@ func handlerArmyMove(ch *amqp.Channel, gs *gamelogic.GameState) func(gamelogic.A
 
 			if err != nil {
 				fmt.Println("War outcome produced error:", err)
+				return pubsub.NackRequeue
 			}
 
-			return pubsub.NackRequeue
+			return pubsub.Ack
 		case gamelogic.MoveOutComeSafe:
 			return pubsub.Ack
 		default:

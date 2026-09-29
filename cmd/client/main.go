@@ -57,6 +57,9 @@ func main() {
 
 	for {
 		inputs := gamelogic.GetInput()
+		if len(inputs) == 0 {
+			continue
+		}
 		switch inputs[0] {
 		case "spawn":
 			err := gamestate.CommandSpawn(inputs)
