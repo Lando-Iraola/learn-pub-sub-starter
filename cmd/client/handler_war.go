@@ -5,7 +5,6 @@ import (
 
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
-	"github.com/bootdotdev/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -23,15 +22,17 @@ func handlerWar(ch *amqp.Channel, gs *gamelogic.GameState) func(gamelogic.Recogn
 			fallthrough
 		case gamelogic.WarOutcomeYouWon:
 			msgLog := fmt.Sprintf("%s won a war agasint %s", winner, loser)
-			err := logGame(ch, routing.ExchangePerilTopic, routing.GameLogSlug+"."+gs.GetUsername(), msgLog, gs.GetUsername())
+			err := logGame(ch, msgLog, gs.GetUsername())
 			if err != nil {
+				fmt.Printf("error: %s\n", err)
 				return pubsub.NackRequeue
 			}
 			return pubsub.Ack
 		case gamelogic.WarOutcomeDraw:
 			msgLog := fmt.Sprintf("A war between %s and %s resulted in a draw", winner, loser)
-			err := logGame(ch, routing.ExchangePerilTopic, routing.GameLogSlug+"."+gs.GetUsername(), msgLog, gs.GetUsername())
+			err := logGame(ch, msgLog, gs.GetUsername())
 			if err != nil {
+				fmt.Printf("error: %s\n", err)
 				return pubsub.NackRequeue
 			}
 

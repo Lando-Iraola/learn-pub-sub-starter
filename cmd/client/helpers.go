@@ -8,12 +8,12 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func logGame(ch *amqp.Channel, exchange, key, message, userName string) error {
+func logGame(ch *amqp.Channel, message, userName string) error {
 
 	gl := routing.GameLog{
 		Message:     message,
 		Username:    userName,
 		CurrentTime: time.Now(),
 	}
-	return pubsub.PublishGob(ch, exchange, key, gl)
+	return pubsub.PublishGob(ch, routing.ExchangePerilTopic, routing.GameLogSlug+"."+userName, gl)
 }
