@@ -25,6 +25,10 @@ func main() {
 	pubsub.PublishJSON(ch, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: true})
 	fmt.Println("Peril game server connected to RabbitMQ!")
 
+	err = pubsub.SubscribeGob(conn, routing.ExchangePerilTopic, routing.GameLogSlug, routing.GameLogSlug+".#", pubsub.DurableQueue, handlerLog(ch))
+	if err != nil {
+		log.Fatalf("could not subscribe to game logs :v", err)
+	}
 	gamelogic.PrintServerHelp()
 	for {
 		inputs := gamelogic.GetInput()
